@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ClueAnswer {
+  CORRECT
+  INCORRECT
+  SKIPPED
+}
+
+model Board {
+  id         String     @id @default(cuid())
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  categories Category[]
+  games      Game[]
+}
+
+model Category {
+  id       String @id @default(cuid())
+  name     String
+  order    Int    @default(0)
+  boardId  String
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  clues    Clue[]
+
+  @@index([boardId])
+}
+
+model Clue {
+  id          String       @id @default(cuid())
+  value       Int
+  question    String
+  answer      String
+  order       Int          @default(0)
+  categoryId  String
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  clueResults ClueResult[]
+
+  @@index([categoryId])
+}
+
+model Game {
+  id          String       @id @default(cuid())
+  name        String?
+  status      GameStatus   @default(IN_PROGRESS)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  boardId     String
+  board       Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  players     GamePlayer[]
+  clueResults ClueResult[]
+
+  @@index([boardId])
+}
+
+model GamePlayer {
+  id          String       @id @default(cuid())
+  name        String
+  score       Int          @default(0)
+  order       Int          @default(0)
+  gameId      String
+  game        Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  clueResults ClueResult[]
+
+  @@index([gameId])
+}
+
+model ClueResult {
+  id        String      @id @default(cuid())
+  result    ClueAnswer
+  createdAt DateTime    @default(now())
+  clueId    String
+  clue      Clue        @relation(fields: [clueId], references: [id], onDelete: Cascade)
+  gameId    String
+  game      Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  playerId  String?
+  player    GamePlayer? @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, clueId])
+  @@index([gameId])
+  @@index([clueId])
+  @@index([playerId])
+}
