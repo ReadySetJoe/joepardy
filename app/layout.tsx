@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Joe-pardy!",
-  description: "A Jeopardy-style trivia game board",
+  description: "Create custom trivia boards to prove you're smarter than your friends, family, or coworkers!",
 };
 
 export default function RootLayout({
