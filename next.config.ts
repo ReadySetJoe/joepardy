@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Production optimizations
+  poweredByHeader: false,
+
+  // Strict mode for better error catching
+  reactStrictMode: true,
 };
 
 export default nextConfig;

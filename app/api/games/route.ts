@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Failed to fetch games:", error);
     return NextResponse.json(
-      { error: "Failed to fetch games", details: String(error) },
+      { error: "Failed to fetch games" },
       { status: 500 }
     );
   }

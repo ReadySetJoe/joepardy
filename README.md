@@ -5,11 +5,14 @@ A Jeopardy-style trivia game board creator and player built with Next.js 16, Typ
 ## Features
 
 - **Game Board**: Classic 6-column Jeopardy board with customizable point values
+- **Game Sessions**: Start multiple games per board with persistent state
 - **Player Management**: Add players, track scores, edit scores manually
+- **Score Persistence**: Players, scores, and answered clues are saved automatically
 - **Multi-player Scoring**: Mark multiple players correct/incorrect on the same question before confirming
 - **Board Creator**: Full CRUD operations for creating and editing game boards
+- **Game History**: Resume in-progress games or review completed ones
 - **Slick UI**: Animated transitions, gradients, and a polished dark theme
-- **Persistent Storage**: PostgreSQL database for storing boards, categories, and clues
+- **Persistent Storage**: PostgreSQL database for storing boards, games, and player data
 
 ## Tech Stack
 
@@ -44,7 +47,10 @@ joepardy/
 │   │   └── prisma.ts          # Prisma client singleton
 │   ├── play/
 │   │   └── [id]/
-│   │       └── page.tsx       # Play a saved board
+│   │       ├── page.tsx       # Game selection for a board
+│   │       └── game/
+│   │           └── [gameId]/
+│   │               └── page.tsx  # Play a specific game
 │   ├── globals.css            # Global styles and animations
 │   ├── layout.tsx             # Root layout
 │   ├── page.tsx               # Home page with demo board
@@ -64,7 +70,8 @@ Board
 ├── name (string)
 ├── createdAt (datetime)
 ├── updatedAt (datetime)
-└── categories[] -> Category
+├── categories[] -> Category
+└── games[] -> Game
 
 Category
 ├── id (string, cuid)
@@ -79,7 +86,34 @@ Clue
 ├── question (string)
 ├── answer (string)
 ├── order (int)
-└── categoryId (string, FK)
+├── categoryId (string, FK)
+└── clueResults[] -> ClueResult
+
+Game
+├── id (string, cuid)
+├── name (string, optional)
+├── status (IN_PROGRESS | COMPLETED)
+├── createdAt (datetime)
+├── updatedAt (datetime)
+├── boardId (string, FK)
+├── players[] -> GamePlayer
+└── clueResults[] -> ClueResult
+
+GamePlayer
+├── id (string, cuid)
+├── name (string)
+├── score (int)
+├── order (int)
+├── gameId (string, FK)
+└── clueResults[] -> ClueResult
+
+ClueResult
+├── id (string, cuid)
+├── result (CORRECT | INCORRECT | SKIPPED)
+├── createdAt (datetime)
+├── clueId (string, FK)
+├── gameId (string, FK)
+└── playerId (string, FK, optional)
 ```
 
 ## Setup Instructions
@@ -167,10 +201,19 @@ Visit http://localhost:3000
 - Edit clue values, questions, and answers
 - Changes are saved when you click "Save Changes"
 
-### Play Mode (/play/[id])
+### Game Selection (/play/[id])
 
-- Play any saved board
-- Same functionality as home page but with your custom board
+- View all games for a board (in-progress and completed)
+- Start a new game with optional name
+- Resume an in-progress game
+- Delete games
+
+### Play Game (/play/[id]/game/[gameId])
+
+- Play a specific game session
+- Add players, answer clues, track scores
+- All progress is automatically saved
+- End the game when finished
 
 ## Game Flow
 
@@ -185,6 +228,8 @@ Visit http://localhost:3000
 
 ## API Endpoints
 
+### Boards
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/boards` | List all boards |
@@ -192,6 +237,19 @@ Visit http://localhost:3000
 | GET | `/api/boards/[id]` | Get a single board |
 | PUT | `/api/boards/[id]` | Update a board |
 | DELETE | `/api/boards/[id]` | Delete a board |
+
+### Games
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/games?boardId=X` | List games for a board |
+| POST | `/api/games` | Create a new game |
+| GET | `/api/games/[id]` | Get a single game |
+| PUT | `/api/games/[id]` | Update game (name, status) |
+| DELETE | `/api/games/[id]` | Delete a game |
+| POST | `/api/games/[id]/players` | Add a player |
+| PUT | `/api/games/[id]/players` | Update player scores |
+| POST | `/api/games/[id]/clues/[clueId]` | Record clue results |
 
 ## Scripts
 
@@ -248,6 +306,52 @@ Edit the clue values in the board editor, or modify the default values in `/app/
 - Global styles and animations: `/app/globals.css`
 - Component styles use Tailwind CSS classes
 - Color scheme uses Jeopardy blue (`#060CE9`) and gold (`#ffcc00`)
+
+## Production Deployment
+
+### Environment Variables
+
+Set the following environment variable in your deployment platform:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/joepardy` |
+
+### Deploy to Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Import the repository in [Vercel](https://vercel.com)
+3. Add the `DATABASE_URL` environment variable pointing to your PostgreSQL database
+4. Deploy
+
+Vercel will automatically run `npm run build` which includes Prisma client generation.
+
+### Deploy to Other Platforms
+
+```bash
+# 1. Set DATABASE_URL environment variable
+
+# 2. Install dependencies
+npm install
+
+# 3. Run database migrations
+npm run db:migrate
+
+# 4. Build the application
+npm run build
+
+# 5. Start the server
+npm run start
+```
+
+### Database Providers
+
+The app works with any PostgreSQL database. Recommended providers:
+
+- **[Neon](https://neon.tech)** - Serverless PostgreSQL (free tier available)
+- **[Supabase](https://supabase.com)** - PostgreSQL with extras (free tier available)
+- **[Railway](https://railway.app)** - Simple PostgreSQL hosting
+- **[PlanetScale](https://planetscale.com)** - MySQL-compatible (requires schema changes)
 
 ## License
 
