@@ -3,23 +3,23 @@ import { GameBoard } from "../types";
 export const dummyBoard: GameBoard = {
   categories: [
     {
-      name: "Music",
+      name: "U.S. History",
       clues: [
-        { value: 100, question: "This song encourages the listener to reverse their behind, which would be jarring in this George Clooney/Anna Kendrick movie containing copious layoffs (or Superman's catchphrase for taking flight).", answer: "Back That Ass Up, Up, and Away" },
-        { value: 200, question: "The Beatles suggest that joy can fire projectiles, possibly from the arm of this Japanese anime featuring giant robots.", answer: "Happiness Is a Warm Gun-dam" },
-        { value: 300, question: "You'll need a professor from the School of Rock for this 'Wham Bah Lam' song by Ram Jam", answer: "Jack Black Betty"},
-        { value: 400, question: "These two female artists' hit songs have juxtaposed views on their partner. Belinda Carlisle implies their angellic presence, but Alanis Morissette is less kind.", answer: "Heaven Is A Place On Earth With You Oughta Know" },
-        { value: 500, question: "Chase's ex-wife probably reads this famous romance author, while listening to this underrated Coldplay gem.", answer: "Nicholas Sparks" },
+        { value: 100, question: "This U.S. president issued the Emancipation Proclamation.", answer: "Who is Abraham Lincoln?" },
+        { value: 200, question: "This war was fought between the North and South regions in the United States.", answer: "What is the Civil War?" },
+        { value: 300, question: "This ancient civilization built Machu Picchu.", answer: "Who are the Incas?" },
+        { value: 400, question: "This document was signed in 1215 limiting the power of the English monarchy.", answer: "What is the Magna Carta?" },
+        { value: 500, question: "This queen ruled England for 63 years during the 19th century.", answer: "Who is Queen Victoria?" },
       ],
     },
     {
-      name: "Video Games",
+      name: "World History",
       clues: [
-        { value: 100, question: "Beyonce's can feel your _____, _____, ____, she can feel your _____, _____, _____ in the third entry of this XBox/343 Industries FPS classic", answer: "Halo 3" },
-        { value: 200, question: "His majesty of Camelot would welcome this early 1900's American video game protagonist as a knight of the round table.", answer: "King Arthur Morgan" },
-        { value: 300, question: "Dating in this Japanese book club gets scarier over time, so I'd much rather prefer tipping the iceberg with my fellow flightless arctic birds", answer: "Doki Doki Literature Club Penguin" },
-        { value: 400, question: "The latest Mario Party game is set in this cozy, farming sim.", answer: "Mario Party Super Stardew Valley" },
-        { value: 500, question: "These plumber brothers are infamous in the Mushroom Kingdom, and you'll need both of their full names for this answer. Finally, the green one gets to go first.", answer: "Luigi Mario Mario" },
+        { value: 100, question: "This empire was ruled by Genghis Khan.", answer: "What is the Mongol Empire?" },
+        { value: 200, question: "This ancient city is known for its hanging gardens.", answer: "What is Babylon?" },
+        { value: 300, question: "This war was sparked by the assassination of Archduke Franz Ferdinand.", answer: "What is World War I?" },
+        { value: 400, question: "This wall divided East and West Berlin from 1961 to 1989.", answer: "What is the Berlin Wall?" },
+        { value: 500, question: "This revolution began in 1789 and led to the rise of Napoleon Bonaparte.", answer: "What is the French Revolution?" },
       ],
     },
     {
