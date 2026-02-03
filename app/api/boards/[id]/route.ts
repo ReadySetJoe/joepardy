@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { auth } from "@/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -38,10 +39,37 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PUT /api/boards/[id] - Update a board
+// PUT /api/boards/[id] - Update a board (owner only)
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
+
+    // Verify ownership
+    const existingBoard = await prisma.board.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+
+    if (!existingBoard) {
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+
+    if (existingBoard.userId && existingBoard.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { name, categories } = body;
 
@@ -50,10 +78,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       where: { id },
       data: { name },
     });
-
-    if (!boardUpdate) {
-      return NextResponse.json({ error: "Board not found" }, { status: 404 });
-    }
 
     // If categories are provided, update them
     if (categories && Array.isArray(categories)) {
@@ -177,10 +201,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/boards/[id] - Delete a board
+// DELETE /api/boards/[id] - Delete a board (owner only)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
+
+    // Verify ownership
+    const existingBoard = await prisma.board.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+
+    if (!existingBoard) {
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+
+    if (existingBoard.userId && existingBoard.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     await prisma.board.delete({
       where: { id },

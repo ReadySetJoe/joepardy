@@ -12,6 +12,7 @@ import {
   deleteGame,
 } from "../lib/api";
 import { Game } from "../types";
+import { AuthButton } from "../components/AuthButton";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -90,12 +91,15 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-8 animate-slide-down">
-          <Link
-            href="/"
-            className="text-yellow-400/70 hover:text-yellow-400 text-sm uppercase tracking-widest transition-colors"
-          >
-            &larr; Back to Home
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="text-yellow-400/70 hover:text-yellow-400 text-sm uppercase tracking-widest transition-colors"
+            >
+              &larr; Back to Home
+            </Link>
+            <AuthButton />
+          </div>
           <h1 className="text-4xl md:text-5xl font-black text-white mt-4 tracking-wide">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">
               Admin

@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { auth } from "@/auth";
 
-// GET /api/boards - List all boards
+// GET /api/boards - List user's boards (requires auth)
 export async function GET() {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const boards = await prisma.board.findMany({
+      where: { userId: session.user.id },
       include: {
         categories: {
           orderBy: { order: "asc" },
@@ -31,6 +42,15 @@ export async function GET() {
 // POST /api/boards - Create a new board
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { name } = body;
 
@@ -44,6 +64,7 @@ export async function POST(request: NextRequest) {
     const board = await prisma.board.create({
       data: {
         name,
+        userId: session.user.id,
         categories: {
           create: Array.from({ length: 6 }, (_, i) => ({
             name: `Category ${i + 1}`,

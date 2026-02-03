@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
 
   // Strict mode for better error catching
   reactStrictMode: true,
+
+  // Allow Google profile images
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
