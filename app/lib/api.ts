@@ -102,12 +102,14 @@ export async function deleteBoard(id: string): Promise<void> {
 
 // ============ Game API Functions ============
 
-// Fetch games for a board
-export async function fetchGames(boardId: string, status?: "IN_PROGRESS" | "COMPLETED"): Promise<Game[]> {
-  const params = new URLSearchParams({ boardId });
+// Fetch all games (optionally filtered by boardId and/or status)
+export async function fetchGames(boardId?: string, status?: "IN_PROGRESS" | "COMPLETED"): Promise<Game[]> {
+  const params = new URLSearchParams();
+  if (boardId) params.set("boardId", boardId);
   if (status) params.set("status", status);
 
-  const response = await fetch(`/api/games?${params}`);
+  const query = params.toString();
+  const response = await fetch(`/api/games${query ? `?${query}` : ""}`);
   if (!response.ok) {
     throw new Error("Failed to fetch games");
   }
@@ -201,6 +203,17 @@ export async function recordClueResult(
   });
   if (!response.ok) {
     throw new Error("Failed to record clue result");
+  }
+  return response.json();
+}
+
+// Remove clue result (reactivate a clue)
+export async function removeClueResult(gameId: string, clueId: string): Promise<Game> {
+  const response = await fetch(`/api/games/${gameId}/clues/${clueId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to remove clue result");
   }
   return response.json();
 }

@@ -43,6 +43,7 @@ export interface Game {
   name: string | null;
   status: GameStatus;
   boardId: string;
+  board?: { name: string };
   createdAt: string;
   updatedAt: string;
   players: GamePlayer[];

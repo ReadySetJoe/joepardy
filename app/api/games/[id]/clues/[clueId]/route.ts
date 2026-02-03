@@ -95,3 +95,71 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   }
 }
+
+// DELETE /api/games/[id]/clues/[clueId] - Remove clue result (reactivate clue)
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: gameId, clueId } = await params;
+
+    // Find the clue result to get the score changes to reverse
+    const clueResult = await prisma.clueResult.findUnique({
+      where: {
+        gameId_clueId: { gameId, clueId },
+      },
+      include: {
+        clue: true,
+      },
+    });
+
+    if (!clueResult) {
+      return NextResponse.json({ error: "Clue result not found" }, { status: 404 });
+    }
+
+    // Reverse the score change for the player who answered
+    if (clueResult.playerId) {
+      let scoreReverse = 0;
+      if (clueResult.result === "CORRECT") {
+        scoreReverse = -clueResult.clue.value; // Remove the points they gained
+      } else if (clueResult.result === "INCORRECT") {
+        scoreReverse = clueResult.clue.value; // Add back the points they lost
+      }
+
+      if (scoreReverse !== 0) {
+        await prisma.gamePlayer.update({
+          where: { id: clueResult.playerId },
+          data: {
+            score: {
+              increment: scoreReverse,
+            },
+          },
+        });
+      }
+    }
+
+    // Delete the clue result
+    await prisma.clueResult.delete({
+      where: {
+        gameId_clueId: { gameId, clueId },
+      },
+    });
+
+    // Return updated game state
+    const updatedGame = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: {
+        players: {
+          orderBy: { order: "asc" },
+        },
+        clueResults: true,
+      },
+    });
+
+    return NextResponse.json(updatedGame);
+  } catch (error) {
+    console.error("Failed to remove clue result:", error);
+    return NextResponse.json(
+      { error: "Failed to remove clue result" },
+      { status: 500 }
+    );
+  }
+}

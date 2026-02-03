@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
     const games = await prisma.game.findMany({
       where,
       include: {
+        board: {
+          select: { name: true },
+        },
         players: {
           orderBy: { order: "asc" },
         },

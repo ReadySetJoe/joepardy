@@ -10,6 +10,7 @@ import {
   toGameBoard,
   addPlayer,
   recordClueResult,
+  removeClueResult,
   updateGame,
   updatePlayerScores,
 } from "../../../../lib/api";
@@ -80,6 +81,11 @@ export default function PlayGamePage({ params }: PageProps) {
     setGame((prev) =>
       prev ? { ...prev, players: updatedPlayers.map(p => ({ ...p, order: p.order })) } : prev
     );
+  };
+
+  const handleReactivateClue = async (clueId: string): Promise<void> => {
+    const updatedGame = await removeClueResult(gameId, clueId);
+    setGame(updatedGame);
   };
 
   const handleEndGame = async () => {
@@ -162,6 +168,7 @@ export default function PlayGamePage({ params }: PageProps) {
         onAddPlayer={handleAddPlayer}
         onClueResult={handleClueResult}
         onUpdateScore={handleUpdateScore}
+        onReactivateClue={handleReactivateClue}
         readOnly={isCompleted}
       />
     </main>

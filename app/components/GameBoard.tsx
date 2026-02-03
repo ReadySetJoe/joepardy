@@ -11,6 +11,7 @@ interface GameBoardProps {
   onAddPlayer?: (name: string) => Promise<GamePlayer>;
   onClueResult?: (clueId: string, results: { playerId: string | null; result: ClueAnswer; scoreChange: number }[]) => Promise<void>;
   onUpdateScore?: (playerId: string, newScore: number) => Promise<void>;
+  onReactivateClue?: (clueId: string) => Promise<void>;
   readOnly?: boolean;
 }
 
@@ -20,7 +21,7 @@ interface SelectedClue {
   clueIndex: number;
 }
 
-export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScore, readOnly = false }: GameBoardProps) {
+export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScore, onReactivateClue, readOnly = false }: GameBoardProps) {
   // Derive revealed clues from game state if available
   const revealedClueIds = useMemo(() => {
     if (!game) return new Set<string>();
@@ -100,6 +101,31 @@ export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScor
     setSelectedClue({ clue, categoryIndex, clueIndex });
     setShowAnswer(false);
     setPlayerResults({});
+  };
+
+  const handleReactivateClue = async (clue: Clue, categoryIndex: number, clueIndex: number) => {
+    if (readOnly) return;
+    if (!confirm("Reactivate this clue? This will reverse any score changes from the previous answer.")) return;
+
+    if (onReactivateClue && clue.id) {
+      // Persisted mode - call API
+      setSaving(true);
+      try {
+        await onReactivateClue(clue.id);
+      } catch (err) {
+        console.error("Failed to reactivate clue:", err);
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      // Local mode - just remove from revealed set
+      const key = `${categoryIndex}-${clueIndex}`;
+      setLocalRevealedClues((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
   };
 
   const handleRevealAnswer = () => {
@@ -212,8 +238,12 @@ export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScor
               return (
                 <button
                   key={`${catIndex}-${rowIndex}`}
-                  onClick={() => handleClueClick(clue, catIndex, rowIndex)}
-                  disabled={isRevealed || readOnly}
+                  onClick={() =>
+                    isRevealed
+                      ? handleReactivateClue(clue, catIndex, rowIndex)
+                      : handleClueClick(clue, catIndex, rowIndex)
+                  }
+                  disabled={readOnly}
                   className={`
                     relative overflow-hidden
                     aspect-[4/3] md:aspect-auto md:min-h-[70px] lg:min-h-[85px]
@@ -224,7 +254,9 @@ export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScor
                     transition-all duration-300 ease-out
                     opacity-0 animate-scale-in
                     ${isRevealed
-                      ? "bg-[#060CE9]/20 cursor-default shadow-none"
+                      ? readOnly
+                        ? "bg-[#060CE9]/20 cursor-default shadow-none"
+                        : "bg-[#060CE9]/20 shadow-none cursor-pointer hover:bg-[#060CE9]/40 hover:shadow-md"
                       : readOnly
                         ? "bg-gradient-to-b from-[#0a10d0] to-[#060CE9] cursor-default"
                         : `bg-gradient-to-b from-[#0a10d0] to-[#060CE9]
@@ -241,12 +273,14 @@ export function GameBoard({ board, game, onAddPlayer, onClueResult, onUpdateScor
                     className={`
                       drop-shadow-lg transition-all duration-300
                       ${isRevealed
-                        ? "opacity-0 scale-50"
+                        ? readOnly
+                          ? "opacity-0 scale-50"
+                          : "opacity-30 text-white/50 text-sm md:text-base"
                         : "text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-500"
                       }
                     `}
                   >
-                    ${clue.value}
+                    {isRevealed && !readOnly ? "↺" : `$${clue.value}`}
                   </span>
                   {!isRevealed && (
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10 pointer-events-none" />
